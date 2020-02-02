@@ -36,7 +36,7 @@ public class ProductJob {
 
 	@Scheduled(fixedDelayString = "${search.delay.milliseconds:20000}")
 	public void cron() throws Exception {
-		logger.info("---------执行时间:{}--------", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+		//logger.info("---------执行时间:{}--------", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		doJob();
 	}
 

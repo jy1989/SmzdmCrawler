@@ -1,6 +1,6 @@
 search:
  url: https://search.smzdm.com/?c=faxian&s={key}&order=time&v=b
- keywords: 酒精 消毒,口罩,n95,mate30 pro,hottoys
+ keywords: 酒精 消毒,口罩,mate30 pro,hottoys
  to: 接收邮箱名
  delay:
   milliseconds: 15000
