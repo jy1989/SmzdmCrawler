@@ -1,0 +1,17 @@
+search:
+ url: https://search.smzdm.com/?c=faxian&s={key}&order=time&v=b
+ keywords: 酒精 消毒,口罩,n95,mate30 pro,hottoys
+ to: 196237200@qq.com
+ delay:
+  milliseconds: 15000
+spring:
+ mail:
+  host: smtp.qq.com
+  username: 196237200@qq.com
+  password: qq邮箱授权码
+  properties:
+   smtp:
+    auth: true
+ 
+ 
+
