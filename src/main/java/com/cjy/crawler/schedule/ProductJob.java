@@ -21,22 +21,40 @@ import com.cjy.crawler.service.ProductService;
 public class ProductJob {
 	private final Logger logger = LoggerFactory.getLogger(this.getClass());
 	Map<String, JSONObject> keyMap = new HashMap<String, JSONObject>();
-	boolean firstRun = true;
 	@Value("${search.url}")
 	String searchUrl;
-	int counter = 0;
+	int cronCounter = 0;
+	int itemCounter = 0;
+	String keywords = "";
+	boolean firstRun = true;
 	boolean debug = false;
-	
+
 	@Autowired
 	ProductService productService;
 
 	@Scheduled(fixedDelayString = "${search.delay.milliseconds:20000}")
 	public void cron() throws Exception {
+		detectReset();
 		doJob();
+		cronCounter++;
+		if (cronCounter == 1) {
+			firstRun = false;
+		}
+	}
+
+	private void detectReset() {
+		String currentKeywords = productService.getKeywords();
+		if (!keywords.equals(currentKeywords)) {
+			resetCounter();
+			keywords = currentKeywords;
+		}
+		if (itemCounter > keywords.split(",").length * 500) {
+			resetCounter();
+		}
 	}
 
 	private void doJob() {
-		String keywords = productService.getKeywords();
+
 		String[] kws = keywords.split(",");
 		logger.info("关键词:{}", keywords);
 		for (int i = 0; i < kws.length; i++) {
@@ -51,15 +69,9 @@ public class ProductJob {
 
 		}
 
-		if (counter > kws.length * 500) {
-			resetCounter();
-		} else {
-			firstRun = false;
-		}
-
 	}
 
-	public void search(String key) throws Exception {
+	private void search(String key) throws Exception {
 		String url = searchUrl.replace("{key}", key);
 		Document doc = Jsoup.connect(url).get();
 
@@ -81,23 +93,21 @@ public class ProductJob {
 				if (!firstRun) {
 					productService.sendMsg(jo);
 				}
-				if (debug && counter == 0) {
+				if (debug && itemCounter == 0) {
 					productService.sendMsg(jo);
 				}
 				keyMap.put(title, jo);
 			}
-			counter++;
+			itemCounter++;
 
 		}
 	}
 
 	private void resetCounter() {
 		keyMap.clear();
-		counter = 0;
+		itemCounter = 0;
+		cronCounter = 0;
 		firstRun = true;
-
 	}
-
-	 
 
 }
