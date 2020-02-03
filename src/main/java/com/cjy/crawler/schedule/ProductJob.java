@@ -1,8 +1,5 @@
 package com.cjy.crawler.schedule;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,7 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.cjy.crawler.service.MailService;
+import com.cjy.crawler.service.ProductService;
 
 @Component
 public class ProductJob {
@@ -27,20 +24,19 @@ public class ProductJob {
 	boolean firstRun = true;
 	@Value("${search.url}")
 	String searchUrl;
-	@Value("${search.keywords}")
-	String keywords;
 	int counter = 0;
 	boolean debug = false;
+	
 	@Autowired
-	MailService mailService;
+	ProductService productService;
 
 	@Scheduled(fixedDelayString = "${search.delay.milliseconds:20000}")
 	public void cron() throws Exception {
-		//logger.info("---------执行时间:{}--------", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
 		doJob();
 	}
 
 	private void doJob() {
+		String keywords = productService.getKeywords();
 		String[] kws = keywords.split(",");
 		logger.info("关键词:{}", keywords);
 		for (int i = 0; i < kws.length; i++) {
@@ -63,11 +59,9 @@ public class ProductJob {
 
 	}
 
-	private void search(String key) throws Exception {
+	public void search(String key) throws Exception {
 		String url = searchUrl.replace("{key}", key);
-		Document doc;
-
-		doc = Jsoup.connect(url).get();
+		Document doc = Jsoup.connect(url).get();
 
 		Element mainList = doc.selectFirst("#feed-main-list");
 		if (mainList == null) {
@@ -82,20 +76,19 @@ public class ProductJob {
 			String href = content.selectFirst(".feed-block-title a").attr("href");
 			String link = content.selectFirst(".z-feed-foot .feed-link-btn a").attr("href");
 
-			JSONObject jo = setItem(title, price, desc, href, link);
+			JSONObject jo = productService.setItem(title, price, desc, href, link);
 			if (!keyMap.containsKey(title)) {
 				if (!firstRun) {
-					sendMsg(jo);
+					productService.sendMsg(jo);
 				}
 				if (debug && counter == 0) {
-					sendMsg(jo);
+					productService.sendMsg(jo);
 				}
 				keyMap.put(title, jo);
 			}
 			counter++;
 
 		}
-
 	}
 
 	private void resetCounter() {
@@ -105,24 +98,6 @@ public class ProductJob {
 
 	}
 
-	private void sendMsg(JSONObject jo) throws IOException {
-
-		String content = "<div>" + jo.getString("desc") + "</div><div><b>" + jo.getString("price") + "</b></div>"
-				+ "<div><a href=\"" + jo.getString("link") + "\">" + jo.getString("link") + "</a></div>";
-		String title = jo.getString("title");
-		mailService.sendHtmlMail(title, content);
-
-		logger.info("发送了通知！{}", jo.getString("title"));
-	}
-
-	private JSONObject setItem(String title, String price, String desc, String href, String link) {
-		JSONObject jo = new JSONObject();
-		jo.put("title", title);
-		jo.put("price", price);
-		jo.put("desc", desc);
-		jo.put("href", href);
-		jo.put("link", link);
-		return jo;
-	}
+	 
 
 }

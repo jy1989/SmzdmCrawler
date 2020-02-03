@@ -62,6 +62,35 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>2.0.0</version>
+				<configuration>
+					<from>
+						<image>openjdk:alpine</image>
+					</from>
+					<to>
+						<image>docker.io/xxx/yyy</image>
+						<tags>
+							<tag>v1</tag>
+						</tags>
+						<auth>
+							<username>xxx</username>
+							<password>yyy</password>
+						</auth>
+					</to>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>build</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
